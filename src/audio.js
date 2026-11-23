@@ -64,6 +64,16 @@ const Snd = {
   start()  { this.tone(523, 523, 0.08, 'square', 0.08); this.tone(784, 784, 0.16, 'square', 0.08, 0.08); },
   finish() { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => this.tone(f, f, 0.14, 'square', 0.08, i * 0.1)); },
   over()   { [392, 330, 262, 196].forEach((f, i) => this.tone(f, f * 0.98, 0.25, 'triangle', 0.14, i * 0.18)); },
+  beep(hi) { this.tone(hi ? 1046 : 523, hi ? 1046 : 523, hi ? 0.4 : 0.18, 'square', 0.1); },
+  pop()    { this.burst(0.12, 0.25, 3000, 1, 'bandpass'); [880, 1175, 1568].forEach((f, i) => this.tone(f, f, 0.06, 'square', 0.05, i * 0.04)); },
+  tick()   { this.tone(1500, 1500, 0.02, 'square', 0.03); },
+  getItem(){ this.tone(784, 784, 0.07, 'square', 0.07); this.tone(1175, 1175, 0.12, 'square', 0.07, 0.07); },
+  toss()   { this.burst(0.18, 0.2, 1200, 0.8, 'bandpass'); this.tone(500, 300, 0.12, 'triangle', 0.08); },
+  boost()  { this.tone(200, 900, 0.45, 'sawtooth', 0.1); this.burst(0.6, 0.15, 2500, 0.5, 'bandpass'); },
+  shield() { [659, 988, 1319].forEach((f, i) => this.tone(f, f, 0.2, 'sine', 0.12, i * 0.05)); },
+  shieldPop() { this.tone(1319, 330, 0.25, 'triangle', 0.12); this.burst(0.2, 0.2, 4000, 1, 'highpass'); },
+  blizzard()  { this.burst(1.4, 0.35, 900, 0.4, 'bandpass'); this.tone(90, 60, 1.0, 'sawtooth', 0.08); },
+  slurp()  { this.tone(300, 120, 0.25, 'sine', 0.15); this.burst(0.2, 0.2, 700); },
   gulp()   { this.tone(400, 80, 0.5, 'sawtooth', 0.15); this.burst(0.6, 0.4, 500); },
 
   update(scrapeAmt, brakeAmt, engineAmt, enginePitch) {

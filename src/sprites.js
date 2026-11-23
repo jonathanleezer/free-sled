@@ -34,6 +34,7 @@ const COLORS = {
   x: '#ffd76a', X: '#e0a530',
   m: '#e2552b', M: '#a8381a',
   f: '#4a5a78', F: '#8fb0dc',
+  z: '#a7bccf', Q: '#7b93ab', E: '#e85aa0', L: '#3c9bd6',
 };
 const PAL = {};
 for (const k in COLORS) PAL[k] = rgba(COLORS[k]);
@@ -724,6 +725,7 @@ function buildSprites() {
   BASE.player = both;
   BASE.crash = PB.fromRows(CRASH_HALF, true);
   BASE.saucer = makeSaucerKid();
+  buildRaceSprites();
 
   SPR.pine_big0 = makePine(24, 42, 4, 11);
   SPR.pine_big1 = makePine(22, 38, 4, 23);
@@ -761,4 +763,112 @@ function buildSprites() {
   [SPR.xcA_r, SPR.xcA_l] = dog(XC_A);
   [SPR.xcB_r, SPR.xcB_l] = dog(XC_B);
   SPR.crash = BASE.crash.sprite();
+}
+
+// ---------------------------------------------------------------------------
+// Race mode: rival skins, gifts, items
+// ---------------------------------------------------------------------------
+const SKINS = {
+  player: { name: 'YOU',   coat: '#d8333a', coatD: '#9c1f2a', hat: '#2f5fd0', hatD: '#1f3d8a', wood: '#c98a4b', woodD: '#8a5527' },
+  max:    { name: 'MAX',   coat: '#3fa34d', coatD: '#2a7535', hat: '#ff8a1f', hatD: '#c45b0a', wood: '#d8333a', woodD: '#9c1f2a' },
+  zoe:    { name: 'ZOE',   coat: '#7b4fc9', coatD: '#5a36a0', hat: '#f6c431', hatD: '#c48a00', wood: '#c98a4b', woodD: '#8a5527' },
+  ollie:  { name: 'OLLIE', coat: '#ff8a1f', coatD: '#c45b0a', hat: '#3fa34d', hatD: '#2a7535', wood: '#3c9bd6', woodD: '#1f3d8a' },
+  pip:    { name: 'PIP',   coat: '#3c9bd6', coatD: '#1f6a8a', hat: '#d8333a', hatD: '#9c1f2a', wood: '#9aa3ad', woodD: '#5b636d' },
+  bea:    { name: 'BEA',   coat: '#e85aa0', coatD: '#a83a72', hat: '#2e2a5a', hatD: '#1c1940', wood: '#f6c431', woodD: '#c48a00' },
+};
+function recolor(pb, sk) {
+  const m = new Map([[PAL.r, rgba(sk.coat)], [PAL.R, rgba(sk.coatD)], [PAL.b, rgba(sk.hat)], [PAL.B, rgba(sk.hatD)], [PAL.o, rgba(sk.wood)], [PAL.O, rgba(sk.woodD)]]);
+  const o = pb.clone();
+  for (let i = 0; i < o.d.length; i++) { const c = m.get(o.d[i]); if (c) o.d[i] = c; }
+  return o;
+}
+function skinKey(base, skin) { return skin === 'player' ? base : base + '_' + skin; }
+
+function makeGift(col, colD, rib) {
+  const b = new PB(14, 14);
+  b.rect(1, 5, 12, 9, col); b.rect(9, 5, 4, 9, colD);
+  b.rect(0, 3, 14, 3, col); b.rect(10, 3, 4, 3, colD); b.rect(0, 5, 14, 1, colD);
+  b.rect(6, 3, 2, 11, rib); b.rect(1, 9, 12, 2, rib);
+  // bow
+  b.set(3, 0, rib); b.set(4, 1, rib); b.set(5, 2, rib); b.set(3, 1, rib); b.set(2, 1, rib);
+  b.set(10, 0, rib); b.set(9, 1, rib); b.set(8, 2, rib); b.set(10, 1, rib); b.set(11, 1, rib);
+  b.set(6, 2, rib); b.set(7, 2, rib);
+  b.set(1, 4, 'w'); b.set(2, 4, 'w'); b.set(1, 6, 'w');
+  return b.pad(1, 1, 1, 1).outline('k').sprite(8, 15);
+}
+
+function makeIcon(kind) {
+  const b = new PB(16, 16);
+  const snow = (dx, dy, nx, ny) => (-nx * 0.6 - ny * 0.8 < -0.3 ? 'W' : 'w');
+  if (kind === 'snowball') { b.ellipse(8, 8, 5.5, 5.5, snow); b.set(6, 6, 'j'); }
+  else if (kind === 'snowball3') { b.ellipse(5, 10, 3.6, 3.6, snow); b.ellipse(11, 10, 3.6, 3.6, snow); b.ellipse(8, 5, 3.6, 3.6, snow); }
+  else if (kind === 'slush') {
+    b.ellipse(8, 10, 7, 4, (dx, dy, nx, ny) => (ny < -0.4 ? 'z' : (Math.abs(dx + dy * 2) % 5 < 1 ? 'j' : 'Q')));
+    b.ellipse(5, 6, 1.6, 1.6, 'z'); b.ellipse(11, 5, 1.2, 1.2, 'z');
+  } else if (kind === 'wax') {
+    b.rect(2, 4, 12, 9, 'a'); b.rect(2, 11, 12, 2, 'A'); b.rect(2, 4, 12, 1, 'y');
+    b.line(9, 5, 6, 8, 'y'); b.line(6, 8, 10, 8, 'y'); b.line(10, 8, 7, 12, 'y');
+  } else if (kind === 'shield') {
+    b.ellipse(8, 7, 6, 6, (dx, dy, nx, ny) => (nx < -0.2 && ny < -0.2 ? 'j' : 'i'));
+    b.set(8, 4, 't'); b.rect(7, 5, 3, 1, 't'); b.rect(6, 6, 5, 2, 't'); b.set(8, 8, 'u');
+    b.set(5, 3, 'w'); b.set(10, 6, 'w'); b.set(6, 9, 'w');
+    b.rect(3, 12, 10, 3, 'u'); b.rect(3, 12, 10, 1, 'o');
+  } else if (kind === 'blizzard') {
+    b.ellipse(5, 6, 3.6, 3, 'W'); b.ellipse(10, 5, 4.4, 3.8, 'w'); b.ellipse(8, 8, 6, 2.4, 'W'); b.ellipse(10, 4, 2.4, 2, 'w');
+    for (const [x, y] of [[3, 12], [7, 13], [11, 12], [5, 15], [9, 15], [13, 14]]) b.set(x, y, 'I');
+  }
+  return b.pad(1, 1, 1, 1).outline('k').sprite(9, 9);
+}
+
+function makeSlushPuddle() {
+  const b = new PB(28, 12);
+  b.ellipse(14, 6, 13, 5.2, (dx, dy, nx, ny) => {
+    const h = (Math.floor(dx * 3) * 7 + Math.floor(dy * 5) * 13) & 15;
+    if (Math.hypot(nx, ny) > 0.85) return 'Q';
+    if (h === 0) return 'j';
+    if (h < 4) return 'Q';
+    return 'z';
+  });
+  return b.sprite(14, 7);
+}
+
+function makeBubble() {
+  const b = new PB(30, 32);
+  b.ellipse(15, 16, 14, 15, (dx, dy, nx, ny) => {
+    const r = Math.hypot(nx, ny);
+    if (r > 0.9) return nx < -0.2 && ny < -0.2 ? 'j' : 'I';
+    if (r > 0.82 && nx < -0.3 && ny < -0.3) return 'j';
+    return null;
+  });
+  return b.sprite(15, 16);
+}
+
+function makeCloud() {
+  const b = new PB(22, 10);
+  b.ellipse(6, 6, 5, 3.5, 'W'); b.ellipse(12, 4.5, 6, 4.2, 'w'); b.ellipse(17, 6, 4.5, 3.4, 'W'); b.ellipse(11, 7, 9, 2.6, 'W');
+  b.set(10, 3, 'j'); b.set(11, 2, 'j');
+  return b.pad(1, 1, 1, 1).outline('Q').sprite(12, 6);
+}
+
+function buildRaceSprites() {
+  for (const k in SKINS) {
+    if (k === 'player') continue;
+    const sk = SKINS[k];
+    BASE['player_' + k] = recolor(BASE.player, sk);
+    BASE['rider_' + k] = recolor(BASE.rider, sk);
+    BASE['sled_' + k] = recolor(BASE.sled, sk);
+    BASE['sledBottom_' + k] = recolor(BASE.sledBottom, sk);
+    SPR['crash_' + k] = recolor(BASE.crash, sk).sprite();
+  }
+  SPR.gift0 = makeGift('r', 'R', 'y');
+  SPR.gift1 = makeGift('v', 'V', 'w');
+  SPR.gift2 = makeGift('b', 'B', 'y');
+  SPR.gift3 = makeGift('P', 'p', 'w');
+  for (const k of ['snowball', 'snowball3', 'slush', 'wax', 'shield', 'blizzard']) SPR['icon_' + k] = makeIcon(k);
+  const sb = new PB(6, 6);
+  sb.ellipse(3, 3, 2.6, 2.6, (dx, dy, nx, ny) => (nx + ny > 0.6 ? 'W' : 'w'));
+  SPR.snowball = sb.outline('G').sprite(3, 3);
+  SPR.slush = makeSlushPuddle();
+  SPR.bubble = makeBubble();
+  SPR.cloud = makeCloud();
 }
